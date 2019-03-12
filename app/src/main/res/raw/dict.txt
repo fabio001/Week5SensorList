@@ -1,0 +1,6 @@
+find;bulmak
+word;kelime
+school;okul
+try;denemek
+search;aramak
+apple;elma
