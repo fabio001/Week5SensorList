@@ -1,11 +1,15 @@
 package com.lecture.gl.week5sensorlist;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.PersistableBundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -21,6 +25,8 @@ import java.util.Scanner;
 public class MainActivity extends AppCompatActivity
         implements AdapterView.OnItemClickListener,
         SensorEventListener {
+
+    public static String TAG_NAME="Main";
     public static int MULTIPLE_CHOICE =4;
     private HashMap<String, String> dict=null;
     private ArrayList<String> arrayList;
@@ -37,6 +43,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Log.i(TAG_NAME, "OnCreate called");
 
         sensorManager =(SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -68,6 +76,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+
+
     private void readContentOfTheFile(){
         if(dict == null)
             dict = new HashMap<>();
@@ -80,6 +90,64 @@ public class MainActivity extends AppCompatActivity
             }
         }
         scanner.close();
+
+        //read user words
+        try {
+            Scanner userScan = new Scanner(openFileInput(AddWordActivity.USER_DICTIONARY));
+            while(userScan.hasNext()){
+                String line = userScan.nextLine();
+                String[] parsed = line.split(";");
+                if(parsed.length >=2){
+                    dict.put(parsed[0], parsed[1]);
+                }
+            }
+            userScan.close();
+        }
+        catch (Exception e){
+            Log.e("Main", e.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG_NAME, "OnStart called");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        Log.i(TAG_NAME, "OnSaveInstance called");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG_NAME, "OnPause called");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG_NAME, "OnStop called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG_NAME, "OnDestroy called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG_NAME, "OnResume called");
+        Intent the_incoming_intent = getIntent();
+        String the_word = the_incoming_intent.getStringExtra("word");
+        String the_defn = the_incoming_intent.getStringExtra("defn");
+        if(the_defn == null || the_word == null) return;
+        Toast.makeText(this, the_word +" "+ the_defn+ " is added", Toast.LENGTH_SHORT).show();
+
     }
 
     private void askQuestion(){
@@ -153,6 +221,29 @@ public class MainActivity extends AppCompatActivity
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
+
+    private static int REQ_ID = 1025;
+    public void switchtowordactivity(View view) {
+        Intent intent =new Intent(this, AddWordActivity.class);
+        startActivityForResult(intent, REQ_ID);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQ_ID){
+            if(resultCode == RESULT_OK){
+                if(data !=null){
+                    String word= data.getStringExtra("word");
+                    String defn= data.getStringExtra("defn");
+                    Toast.makeText(this, word +" " +defn,Toast.LENGTH_SHORT).show();
+                    Log.d(TAG_NAME, word +" " +defn);
+                }
+            }
+        }
+    }
+
     //update later for sensor events. Change this --> new SensorAcc()
     class SensorAcc implements  SensorEventListener{
 
